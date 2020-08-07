@@ -1,0 +1,14 @@
+﻿<Window x:Class="SimpleMaze.CustomizeMessageBox"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        xmlns:local="clr-namespace:SimpleMaze"
+        mc:Ignorable="d"
+        WindowStyle="None" WindowStartupLocation="CenterOwner" SizeToContent="Height" ShowInTaskbar="False" Width="200" Height="100" ResizeMode="NoResize">
+    <StackPanel>
+        <TextBlock Margin="10 0" TextAlignment="Left" Text="{Binding MbTitle}" Height="24"></TextBlock>
+        <TextBlock Margin="20 10 20 0" Text="{Binding MbMessage}" Height="30"></TextBlock>
+        <Button Margin="0 10 0 10" Width="80" Height="24" Content="OK" Click="Button_Click"/>
+    </StackPanel>
+</Window>
