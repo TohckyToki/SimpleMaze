@@ -44,6 +44,8 @@ namespace SimpleMaze {
                     this.Cells.Add((col, row), cell);
                 }
             }
+            this[(1, _inPoint)].Walls[Direction.Left] = false;
+            this[(_width, _outPoint)].Walls[Direction.Right] = false;
         }
 
         public MazeMap(int width, int height, int inPoint, int outPoint, List<((int X, int Y) Location, (bool L, bool T, bool R, bool B) Walls)> mapInfo) : this() {
@@ -67,21 +69,21 @@ namespace SimpleMaze {
             get => (location.X < 1 || location.X > _width || location.Y < 1 || location.Y > _height) ? null : Cells[location];
         }
 
-        // Recursive backtracker
+        /// <summary>
+        /// Recursive backtracker
+        /// </summary>
         public void GenerateWallRb() {
             var currentCell = this[(1, _inPoint)];
-            currentCell.Walls[Direction.Left] = false;
 
             var cells = new Stack<MazeCell>();
-            var NotAccessedCell = new List<KeyValuePair<Direction, MazeCell>>();
+            var notAccessedCell = new List<KeyValuePair<Direction, MazeCell>>();
 
             do {
                 currentCell.IsAccessed = true;
-                if (currentCell.Location == (_width, _outPoint)) currentCell.Walls[Direction.Right] = false;
 
-                NotAccessedCell = currentCell.RelativeCells.Where(e => !(e.Value?.IsAccessed ?? true))?.ToList();
-                if (NotAccessedCell?.Count() > 0) {
-                    var cellInfo = NotAccessedCell[_random.Next(NotAccessedCell.Count())];
+                notAccessedCell = currentCell.RelativeCells.Where(e => !(e.Value?.IsAccessed ?? true))?.ToList();
+                if (notAccessedCell?.Count() > 0) {
+                    var cellInfo = notAccessedCell[_random.Next(notAccessedCell.Count())];
                     if (cellInfo.Key > Direction.Top) {
                         cellInfo.Value.Walls[cellInfo.Key - 2] = false;
                     } else {
@@ -92,40 +94,72 @@ namespace SimpleMaze {
                 } else if (cells.Count > 0) {
                     currentCell = cells.Pop();
                 }
-            } while (NotAccessedCell?.Count() > 0 || cells.Count > 0);
+            } while (notAccessedCell?.Count() > 0 || cells.Count > 0);
+        }
+
+        /// <summary>
+        /// Randomized Prim
+        /// </summary>
+        public void GenerateWallRp() {
+            var currentCell = this[(1, _inPoint)];
+            var notAccessedCell = new List<MazeCell>();
+
+            do {
+                currentCell.IsAccessed = true;
+                notAccessedCell = this.Where(e => !(e.IsAccessed) && e.RelativeCells.Any(e1 => e1.Value?.IsAccessed ?? false))?.ToList();
+                if (notAccessedCell?.Count() > 0) {
+                    currentCell = notAccessedCell[_random.Next(notAccessedCell.Count())];
+                    var accessedCells = currentCell.RelativeCells.Where(e => e.Value?.IsAccessed ?? false).ToList();
+                    var cellInfo = accessedCells[_random.Next(accessedCells.Count())];
+                    if (cellInfo.Key > Direction.Top) {
+                        cellInfo.Value.Walls[cellInfo.Key - 2] = false;
+                    } else {
+                        currentCell.Walls[cellInfo.Key] = false;
+                    }
+                }
+            } while (notAccessedCell?.Count() > 0);
+        }
+
+        /// <summary>
+        /// Recursive division
+        /// </summary>
+        public void GenerateWallRd() {
         }
 
         public void GetRouteFromInToOut() {
             var currentCell = this[(1, _inPoint)];
 
-            var cells = new Stack<MazeCell>();
+            var cells = new Stack<(int, MazeCell)>();
             var NotAccessedCell = new List<KeyValuePair<Direction, MazeCell>>();
+            var i = 0;
 
             do {
                 if (!OutRoute.Contains(currentCell.Location)) {
-                    currentCell.IsAccessed = !currentCell.IsAccessed;
                     OutRoute.Add(currentCell.Location);
                 }
                 if (OutRoute?.Last() == (_width, _outPoint)) {
                     break;
                 }
 
-                NotAccessedCell = currentCell.RelativeCells.Where(e => (e.Value?.IsAccessed ?? currentCell.IsAccessed) == !currentCell.IsAccessed)?.ToList();
-                if (NotAccessedCell?.Count() > 0) {
-                    var cellInfo = NotAccessedCell[_random.Next(NotAccessedCell.Count())];
+                NotAccessedCell = currentCell.RelativeCells.Where(e => e.Value != null && !OutRoute.Contains(e.Value.Location))?.ToList();
+                if (NotAccessedCell?.Count() > 0 && i < NotAccessedCell?.Count()) {
+                    var cellInfo = NotAccessedCell[i];
                     if (cellInfo.Key > Direction.Top && cellInfo.Value.Walls[cellInfo.Key - 2]) {
+                        i++;
                         continue;
                     } else if (currentCell.Walls[cellInfo.Key]) {
+                        i++;
                         continue;
                     }
-                    cells.Push(currentCell);
+                    cells.Push((i + 1, currentCell));
+                    i = 0;
                     currentCell = cellInfo.Value;
                 } else {
                     if (OutRoute?.Last() == currentCell.Location && currentCell.Location != (_width, _outPoint)) {
                         OutRoute.Remove(currentCell.Location);
                     }
                     if (cells.Count > 0) {
-                        currentCell = cells.Pop();
+                        (i, currentCell) = cells.Pop();
                     }
                 }
             } while (NotAccessedCell?.Count() > 0 || cells.Count > 0);

@@ -25,6 +25,7 @@ namespace SimpleMaze {
                 MapHeight = 50,
                 MapCellWidth = 10,
                 ColorBrush = new SolidColorBrush(),
+                SelectedMethodIndex = 0,
                 ColorA = 128,
                 ColorR = 100,
                 ColorG = 100,
@@ -51,11 +52,19 @@ namespace SimpleMaze {
             var inPoint = rd.Next(Info.MapHeight) + 1;
             var outPoint = rd.Next(Info.MapHeight) + 1;
             map = new MazeMap(Info.MapWidth, Info.MapHeight, inPoint, outPoint);
-            map.GenerateWallRb();
+            GetGenerateMethod()?.Invoke();
             foreach (var item in map) {
                 _view.Children.Add(item.GetElement(Info.MapCellWidth));
             }
         }
+
+        private Action GetGenerateMethod() => Info.SelectedMethodIndex switch
+        {
+            0 => map.GenerateWallRb,
+            1 => map.GenerateWallRp,
+            2 => map.GenerateWallRd,
+            _ => null,
+        };
 
         private void MoveToOutPoint(object sender, RoutedEventArgs e) {
             if (_view.Children.Count <= 0) {
@@ -123,7 +132,7 @@ namespace SimpleMaze {
                 var width = mapInfo.Max(e => e.X);
                 var height = mapInfo.Max(e => e.Y);
                 var inPoint = mapInfo.Where(e => e.X == 1 && e.L == false).Select(e => e.Y).First();
-                var outPoint = mapInfo.Where(e => e.X == width && e.L == false).Select(e => e.Y).First();
+                var outPoint = mapInfo.Where(e => e.X == width && e.R == false).Select(e => e.Y).First();
 
                 Info.MapHeight = height;
                 Info.MapWidth = width;

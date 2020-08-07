@@ -10,29 +10,34 @@
         x:Name="_this" WindowStartupLocation="Manual" Top="20" ResizeMode="CanResize" WindowStyle="SingleBorderWindow">
     <Grid>
         <StackPanel x:Name="mainView" Loaded="mainView_Loaded">
-            <StackPanel Height="60" Width="520" Margin="20,0,20,10">
+            <StackPanel Height="60" Margin="20,0,20,10">
                 <StackPanel Orientation="Horizontal" Height="30">
                     <TextBlock VerticalAlignment="Center" Text="长度" TextWrapping="Wrap"/>
-                    <TextBox Width="80" Height="24" MaxLength="2" Text="{Binding MapWidth}" ToolTip="最大80，最小20"/>
+                    <TextBox Width="60" Height="24" MaxLength="2" Text="{Binding MapWidth}" ToolTip="最大80，最小20"/>
                     <TextBlock VerticalAlignment="Center" Text="高度" TextWrapping="Wrap"/>
-                    <TextBox Width="80" Height="24" MaxLength="2" Text="{Binding MapHeight}" ToolTip="最大80，最小20"/>
+                    <TextBox Width="60" Height="24" MaxLength="2" Text="{Binding MapHeight}" ToolTip="最大80，最小20"/>
                     <TextBlock VerticalAlignment="Center" Text="单格大小" TextWrapping="Wrap"/>
-                    <TextBox Width="80" Height="24" MaxLength="2" Text="{Binding MapCellWidth}" ToolTip="最大15，最小10"/>
-                    <Button Width="80" Height="24" Margin="10 0 0 0" Content="导出" Click="ExportMazeData"/>
-                    <Button Width="80" Height="24" Margin="10 0 0 0" Content="导入" Click="ImportMazeData"/>
+                    <TextBox Width="60" Height="24" MaxLength="2" Text="{Binding MapCellWidth}" ToolTip="最大15，最小10"/>
+                    <Button Width="60" Height="24" Margin="10 0 0 0" Content="导出" Click="ExportMazeData"/>
+                    <Button Width="60" Height="24" Margin="10 0 0 0" Content="导入" Click="ImportMazeData"/>
+                    <ComboBox Margin="10 0 0 0" Width="160" Height="24" SelectedIndex="{Binding SelectedMethodIndex}">
+                        <ComboBoxItem Content="Recursive backtracker" IsSelected="True"></ComboBoxItem>
+                        <ComboBoxItem Content="Randomized Prim"></ComboBoxItem>
+                        <ComboBoxItem Content="Recursive division"></ComboBoxItem>
+                    </ComboBox>
                 </StackPanel>
                 <StackPanel Orientation="Horizontal" Height="30">
-                    <Button Width="80" Height="24" Content="生成" Click="GenerateMap"></Button>
-                    <Button Width="80" Height="24" Content="路线" Click="MoveToOutPoint" Margin="10 0 0 0"></Button>
+                    <Button Width="60" Height="24" Content="生成" Click="GenerateMap"></Button>
+                    <Button Width="60" Height="24" Margin="10 0 0 0" Content="路线" Click="MoveToOutPoint"></Button>
                     <StackPanel Orientation="Horizontal" Height="30" Margin="10 0 0 0">
                         <TextBlock VerticalAlignment="Center" Text="A"/>
-                        <Slider Value="{Binding ColorA}" VerticalAlignment="Center" Minimum="0" Maximum="255" Width="70" />
+                        <Slider Value="{Binding ColorA}" VerticalAlignment="Center" Minimum="0" Maximum="255" Width="95" />
                         <TextBlock VerticalAlignment="Center" Text="R"/>
-                        <Slider Value="{Binding ColorR}" VerticalAlignment="Center" Minimum="0" Maximum="255" Width="70" />
+                        <Slider Value="{Binding ColorR}" VerticalAlignment="Center" Minimum="0" Maximum="255" Width="95" />
                         <TextBlock VerticalAlignment="Center" Text="G"/>
-                        <Slider Value="{Binding ColorG}" VerticalAlignment="Center" Minimum="0" Maximum="255" Width="70" />
+                        <Slider Value="{Binding ColorG}" VerticalAlignment="Center" Minimum="0" Maximum="255" Width="95" />
                         <TextBlock VerticalAlignment="Center" Text="B"/>
-                        <Slider Value="{Binding ColorB}" VerticalAlignment="Center" Minimum="0" Maximum="255" Width="70" />
+                        <Slider Value="{Binding ColorB}" VerticalAlignment="Center" Minimum="0" Maximum="255" Width="95" />
                         <Rectangle Width="30" Height="30" Fill="{Binding ColorBrush}"></Rectangle>
                     </StackPanel>
                 </StackPanel>

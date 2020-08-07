@@ -70,6 +70,7 @@ namespace SimpleMaze {
         }
 
         public SolidColorBrush ColorBrush { get; set; }
+        public int SelectedMethodIndex { get; set; }
 
         public event PropertyChangedEventHandler PropertyChanged;
 
