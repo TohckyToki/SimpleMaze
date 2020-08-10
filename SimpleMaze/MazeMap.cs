@@ -106,7 +106,7 @@ namespace SimpleMaze {
 
             do {
                 currentCell.IsAccessed = true;
-                notAccessedCell = this.Where(e => !(e.IsAccessed) && e.RelativeCells.Any(e1 => e1.Value?.IsAccessed ?? false))?.ToList();
+                notAccessedCell = Cells.Values.Where(e => !(e.IsAccessed) && e.RelativeCells.Any(e1 => e1.Value?.IsAccessed ?? false))?.ToList();
                 if (notAccessedCell?.Count() > 0) {
                     currentCell = notAccessedCell[_random.Next(notAccessedCell.Count())];
                     var accessedCells = currentCell.RelativeCells.Where(e => e.Value?.IsAccessed ?? false).ToList();
@@ -124,14 +124,58 @@ namespace SimpleMaze {
         /// Recursive division
         /// </summary>
         public void GenerateWallRd() {
+            foreach (var item in Cells.Values) {
+                if (item.Location.X > 1) item.Walls[Direction.Left] = false;
+                if (item.Location.Y > 1) item.Walls[Direction.Top] = false;
+            }
+
+            var divs = new Stack<(int minX, int maxX, int minY, int maxY)>();
+            divs.Push((1, _width + 1, 1, _height + 1));
+            do {
+                var div = divs.Pop();
+                if ((div.maxX - div.minX < 2)) {
+                    Cells.Values.Where(e => e.Location.X == div.maxX && e.Location.X < div.maxX && e.Location.X >= div.minX && e.Location.Y < div.maxY && e.Location.Y >= div.minY).ToList().ForEach(e => e.Walls[Direction.Top] = false);
+                    continue;
+                }
+                if ((div.maxY - div.minY < 2)) {
+                    Cells.Values.Where(e => e.Location.Y == div.maxY && e.Location.X < div.maxX && e.Location.X >= div.minX && e.Location.Y < div.maxY && e.Location.Y >= div.minY).ToList().ForEach(e => e.Walls[Direction.Left] = false);
+                    continue;
+                }
+
+                var col = _random.Next(div.minX + 1, div.maxX);
+                var row = _random.Next(div.minY + 1, div.maxY);
+                if ((div.maxX - div.minX > 2) && (col % 2 > 0)) col++;
+                if ((div.maxY - div.minY > 2) && (row % 2 > 0)) row++;
+                if (col > div.maxX) col -= 2;
+                if (row > div.maxY) row -= 2;
+
+                divs.Push((col, div.maxX, row, div.maxY));
+                divs.Push((div.minX, col, row, div.maxY));
+                divs.Push((col, div.maxX, div.minY, row));
+                divs.Push((div.minX, col, div.minY, row));
+
+                Cells.Values.Where(e => e.Location.X == col && e.Location.X < div.maxX && e.Location.X >= div.minX && e.Location.Y < div.maxY && e.Location.Y >= div.minY).ToList().ForEach(e => e.Walls[Direction.Left] = true);
+                Cells.Values.Where(e => e.Location.Y == row && e.Location.X < div.maxX && e.Location.X >= div.minX && e.Location.Y < div.maxY && e.Location.Y >= div.minY).ToList().ForEach(e => e.Walls[Direction.Top] = true);
+                var walls = new List<((int x, int y) location, Direction direction)>() {
+                    ((col, _random.Next(div.minY + 1, row)), Direction.Left),
+                    ((col, _random.Next(row, div.maxY)), Direction.Left),
+                    ((_random.Next(div.minX + 1, col), row), Direction.Top),
+                    ((_random.Next(col, div.maxX), row), Direction.Top)
+                };
+                foreach (var wall in walls) {
+                    Cells[wall.location].Walls[wall.direction] = false;
+                }
+
+            } while (divs.Count > 0);
         }
 
         public void GetRouteFromInToOut() {
+            OutRoute.Clear();
             var currentCell = this[(1, _inPoint)];
 
-            var cells = new Stack<(int, MazeCell)>();
+            var cells = new Stack<MazeCell>();
             var NotAccessedCell = new List<KeyValuePair<Direction, MazeCell>>();
-            var i = 0;
+            var removedRoute = new List<(int x, int y, Direction)>();
 
             do {
                 if (!OutRoute.Contains(currentCell.Location)) {
@@ -141,28 +185,27 @@ namespace SimpleMaze {
                     break;
                 }
 
-                NotAccessedCell = currentCell.RelativeCells.Where(e => e.Value != null && !OutRoute.Contains(e.Value.Location))?.ToList();
-                if (NotAccessedCell?.Count() > 0 && i < NotAccessedCell?.Count()) {
-                    var cellInfo = NotAccessedCell[i];
-                    if (cellInfo.Key > Direction.Top && cellInfo.Value.Walls[cellInfo.Key - 2]) {
-                        i++;
-                        continue;
-                    } else if (currentCell.Walls[cellInfo.Key]) {
-                        i++;
+                NotAccessedCell = currentCell.RelativeCells.Where(e => e.Value != null && !OutRoute.Contains(e.Value.Location) && !removedRoute.Contains((currentCell.Location.X, currentCell.Location.Y, e.Key)))?.ToList();
+
+                if (NotAccessedCell?.Count() > 0) {
+                    var cellInfo = NotAccessedCell[0];
+                    removedRoute.Add((currentCell.Location.X, currentCell.Location.Y, cellInfo.Key));
+                    if ((cellInfo.Key > Direction.Top && cellInfo.Value.Walls[cellInfo.Key - 2]) || (currentCell.Walls[cellInfo.Key])) {
                         continue;
                     }
-                    cells.Push((i + 1, currentCell));
-                    i = 0;
+                    cells.Push(currentCell);
                     currentCell = cellInfo.Value;
                 } else {
                     if (OutRoute?.Last() == currentCell.Location && currentCell.Location != (_width, _outPoint)) {
                         OutRoute.Remove(currentCell.Location);
                     }
                     if (cells.Count > 0) {
-                        (i, currentCell) = cells.Pop();
+                        currentCell = cells.Pop();
+                    } else {
+                        currentCell = null;
                     }
                 }
-            } while (NotAccessedCell?.Count() > 0 || cells.Count > 0);
+            } while (currentCell != null);
         }
     }
 
